@@ -1,0 +1,70 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.Scanner;
+
+public class EGoogleSearch {
+
+    public static void main(String[] args) {
+        try {
+            
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("🔎 Enter your search query: ");
+            String rawQuery = scanner.nextLine();
+
+            String query = URLEncoder.encode(rawQuery, "UTF-8"); // 🔑 FIX HERE
+
+            String apiKey = "AIzaSyDVZ4Qw52eVw-EkZTCRGgWXYYghRCGZD_g";
+            String cx = "90f60846ae10a40c6";
+            String urlStr = "https://www.googleapis.com/customsearch/v1?key=" + apiKey +
+                            "&cx=" + cx + "&q=" + query;
+
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            int responseCode = conn.getResponseCode();
+            InputStream inputStream;
+
+            if (responseCode == 200) {
+                inputStream = conn.getInputStream();
+            } else {
+                inputStream = conn.getErrorStream();
+                System.err.println("❌ ERROR " + responseCode + ":");
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder response = new StringBuilder();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                response.append(line);
+            }
+
+            br.close();
+
+            if (responseCode != 200) {
+                System.err.println(response.toString());
+                return;
+            }
+
+            JSONObject json = new JSONObject(response.toString());
+            JSONArray items = json.getJSONArray("items");
+
+            for (int i = 0; i < items.length(); i++) {
+                JSONObject item = items.getJSONObject(i);
+                System.out.println("Title: " + item.getString("title"));
+                System.out.println("Link: " + item.getString("link"));
+                System.out.println();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
