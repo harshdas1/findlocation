@@ -1,0 +1,116 @@
+MTOMClient 
+Index.jsp
+<%@page import="java.io.BufferedOutputStream">
+<%@page import="java.io.FileOutputStream">
+<%@page import="java.io.FileInputStream">
+<%@page import="java.io.BufferedInputStream">
+<%@page import="javax.imageio.stream.FileImageInputStream">
+<%@page import="java.io.File">
+<%@page import="javax.xml.ws.soap.MTOMFeature">
+<%@page contentType="text/html" pageEncoding="UTF-8">
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>JSP Page</title>
+</head>
+<body>
+Installation and Configuration of virtualization using KVM
+Develop application to download image/video from server or upload image/video 
+to server using MTOM techniques
+50
+<%-- start web service invocation --><hr/>
+<%
+try {
+pkg.ImageWS_Service service = new pkg.ImageWS_Service();
+pkg.ImageWS port = service.getImageWSPort(new MTOMFeature(60000));
+// TODO initialize WS operation arguments here 
+String filePath="c:/msc/ABC.jpg";
+File file=new File(filePath);
+FileInputStream fis=new FileInputStream(file); 
+BufferedInputStream bis=new BufferedInputStream(fis); 
+java.lang.String filename = file.getName(); 
+byte[]imageBytes=new byte[(int)file.length()]; 
+bis.read(imageBytes);
+port.upload(filename, imageBytes); 
+bis.close();
+out.println("File uploaded :"+filePath);
+} catch (Exception ex) {
+// TODO handle custom exceptions here
+}
+>
+<%-- end web service invocation --><hr/>
+<%-- start web service invocation --><hr/>
+<%
+try {
+pkg.ImageWS_Service service = new pkg.ImageWS_Service(); 
+pkg.ImageWS port = service.getImageWSPort();
+// TODO initialize WS operation arguments here 
+java.lang.String filename = "ABC.jpg";
+String filePath="c:/msc/download/"+filename;
+// TODO process result here
+byte[] fileBytes = port.download(filename);
+FileOutputStream fos=new FileOutputStream(filePath); 
+BufferedOutputStream bos=new BufferedOutputStream(fos); 
+bos.write(fileBytes);
+bos.close();
+out.println("File downloaded"+filePath);
+} catch (Exception ex) {
+// TODO handle custom exceptions here
+}
+>
+<%-- end web service invocation --><hr/>
+</body>
+</html> 
+MTOMServer 
+ImageWS.java 
+package mypkg; 
+import java.io.*;
+import javax.jws.Oneway;
+51
+import javax.jws.WebService; 
+import javax.jws.WebMethod; 
+import javax.jws.WebParam; 
+import javax.xml.ws.soap.MTOM;
+@MTOM(enabled=true,threshold=60000) 
+@WebService(serviceName = "ImageWS") 
+public class ImageWS { 
+@WebMethod(operationName = "upload") 
+@Oneway
+public void upload(@WebParam(name = "Filename") String Filename, @WebParam(name = 
+"ImageBytes") byte[] ImageBytes){
+String filePath="C:/MSC/upload/"+Filename; 
+try
+{
+FileOutputStream fos=new FileOutputStream(filePath); 
+BufferedOutputStream bos=new BufferedOutputStream(fos); 
+bos.write(ImageBytes);
+bos.close();
+System.out.println("Recieved file :"+filePath);
+}
+catch(Exception ex)
+{
+System.out.println(ex);
+}
+}
+@WebMethod(operationName = "download")
+public byte[] download(@WebParam(name = "Filename") String Filename) { 
+String filePath="C:/MSC/upload/"+Filename;
+System.out.println("Sending file :"+filePath); 
+try
+{
+File file=new File(filePath);
+FileInputStream fis=new FileInputStream(file); 
+BufferedInputStream bis=new BufferedInputStream(fis); 
+byte[] fileBytes=new byte[(int)file.length()]; 
+bis.read(fileBytes);
+bis.close(); 
+return fileBytes;
+}
+catch(Exception ex)
+{
+System.out.println(ex);
+}
+return null;
+}
+}
