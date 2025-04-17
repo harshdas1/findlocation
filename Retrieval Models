@@ -1,0 +1,60 @@
+# Define the documents
+documents = {
+    1: "apple banana orange",
+    2: "apple banana",
+    3: "banana orange",
+    4: "apple"
+}
+
+# Function to build an inverted index using dictionaries
+def build_index(docs):
+    index = {}  # Initialize an empty dictionary to store the inverted index
+    for doc_id, text in docs.items():  # Iterate through each document
+        terms = set(text.split())  # Split the text into unique terms
+        for term in terms:
+            if term not in index:
+                index[term] = {doc_id}  # Create a new set with doc ID
+            else:
+                index[term].add(doc_id)  # Add to existing set
+    return index
+
+# Function for Boolean AND operation
+def boolean_and(operands, index):
+    if not operands:
+        return list(range(1, len(documents) + 1))
+    result = index.get(operands[0], set())
+    for term in operands[1:]:
+        result = result.intersection(index.get(term, set()))
+    return list(result)
+
+# Function for Boolean OR operation
+def boolean_or(operands, index):
+    result = set()
+    for term in operands:
+        result = result.union(index.get(term, set()))
+    return list(result)
+
+# Function for Boolean NOT operation
+def boolean_not(operand, index, total_docs):
+    operand_set = set(index.get(operand, set()))
+    all_docs_set = set(range(1, total_docs + 1))
+    return list(all_docs_set.difference(operand_set))
+
+# === Build the inverted index ===
+inverted_index = build_index(documents)
+
+# === Example queries ===
+query1 = ["apple", "banana"]     # AND
+query2 = ["apple", "orange"]     # OR
+query3 = "orange"                # NOT
+
+# === Perform queries ===
+result1 = boolean_and(query1, inverted_index)
+result2 = boolean_or(query2, inverted_index)
+result3 = boolean_not(query3, inverted_index, len(documents))
+
+# === Output the results ===
+print("Documents containing 'apple' AND 'banana':", result1)
+print("Documents containing 'apple' OR 'orange':", result2)
+print("Documents NOT containing 'orange':", result3)
+print("Performed by 740_Pallavi & 743_Deepak")
