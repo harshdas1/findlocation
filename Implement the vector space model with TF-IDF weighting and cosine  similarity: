@@ -1,0 +1,39 @@
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+import nltk
+from nltk.corpus import stopwords
+import numpy as np
+from numpy.linalg import norm
+
+# Download stopwords if not already downloaded
+nltk.download('stopwords')
+stopWords = stopwords.words('english')
+
+# Define training and test sets
+train_set = ["The sky is blue.", "The sun is bright."]
+test_set = ["The sun in the sky is bright."]
+
+# Initialize CountVectorizer and TfidfTransformer
+vectorizer = CountVectorizer(stop_words=stopWords)
+transformer = TfidfTransformer()
+
+# Convert documents to count vectors
+train_counts = vectorizer.fit_transform(train_set)
+test_counts = vectorizer.transform(test_set)
+
+# Convert count vectors to TF-IDF
+train_tfidf = transformer.fit_transform(train_counts)
+test_tfidf = transformer.transform(test_counts)
+
+# Show vectorized arrays
+print("TF-IDF for training set:\n", train_tfidf.toarray())
+print("\nTF-IDF for test set:\n", test_tfidf.toarray())
+
+# Cosine similarity function
+cosine_similarity = lambda a, b: round(np.inner(a, b) / (norm(a) * norm(b)), 3)
+
+# Calculate cosine similarities
+print("\n--- Cosine Similarities ---")
+for i, train_vec in enumerate(train_tfidf.toarray(), start=1):
+    for j, test_vec in enumerate(test_tfidf.toarray(), start=1):
+        cosine = cosine_similarity(train_vec, test_vec)
+        print(f"Train Doc {i} vs Test Doc {j}: Cosine Similarity = {cosine}")
